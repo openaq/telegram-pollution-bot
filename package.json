@@ -30,7 +30,9 @@
   "homepage": "https://github.com/timum-viw/pollution-bot#readme",
   "dependencies": {
     "dotenv": "^4.0.0",
-    "node-telegram-bot-api": "^0.29.0"
+    "moment": "^2.19.3",
+    "node-telegram-bot-api": "^0.29.0",
+    "superagent": "^3.8.1"
   },
   "devDependencies": {
     "nodemon": "^1.12.1"

@@ -17,7 +17,7 @@ bot.setWebHook(`${url}/bot${TOKEN}`)
 const commands = {
 	start(params) {
 		sendMessage(`Send me your location or the name of a place you want to know about.`)
-	}
+	},
 
 	help(params) {
 		sendMessage(`If you send me your current location, I'll see if I can find any data on air pollution in your area. You can also send me the name of a place or an address that you are interested in and I'll see if I can find any data for you.`)

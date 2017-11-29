@@ -1,0 +1,34 @@
+{
+  "name": "pollution-bot",
+  "version": "1.0.0",
+  "description": "A telegram bot to request pollution data",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./index.js",
+    "serve": "nodemon ./index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/timum-viw/pollution-bot.git"
+  },
+  "keywords": [
+    "telegram",
+    "bot",
+    "pollution",
+    "location-based"
+  ],
+  "author": "Vincent Wyszynski",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/timum-viw/pollution-bot/issues"
+  },
+  "homepage": "https://github.com/timum-viw/pollution-bot#readme",
+  "dependencies": {
+    "dotenv": "^4.0.0",
+    "node-telegram-bot-api": "^0.29.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.12.1"
+  }
+}

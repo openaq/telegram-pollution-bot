@@ -44,7 +44,7 @@ function sendMessage(msg, options) {
 	bot.sendMessage(message.chat.id, msg, options)
 }
 
-function getMeasurements(location, radius = 5000) {
+function getMeasurements(location, radius = 25000) {
 	return superagent.get(`https://api.openaq.org/v1/latest?coordinates=${location.latitude},${location.longitude}&radius=${radius}`).then((res) => {
 		return res.body.results.filter((location) => {
 			return location.measurements && location.measurements.find((mes) => { return new Date(mes.lastUpdated) > moment().subtract(1, 'days')})
@@ -56,7 +56,7 @@ function sendMeasurements(results) {
 	if(results.length < 1) return sendMessage(`Sorry, I didn't find any data for your area...`)
 	results.map((location) => {
 		let text = location.measurements.map((mes) => {
-			return `*${mes.parameter}* ${mes.value} ${mes.unit}`
+			return `*${mes.parameter}* ${Math.round(mes.value, -2)} ${mes.unit}`
 		}).join(`
 `)
 		text += `

@@ -47,22 +47,29 @@ function sendMessage(msg, options) {
 function getMeasurements(location, radius = 25000) {
 	return superagent.get(`https://api.openaq.org/v1/latest?coordinates=${location.latitude},${location.longitude}&radius=${radius}`).then((res) => {
 		return res.body.results.filter((location) => {
-			return location.measurements && location.measurements.find((mes) => { return new Date(mes.lastUpdated) > moment().subtract(1, 'days')})
+			return location.measurements && location.measurements.find((mes) => new Date(mes.lastUpdated) > moment().subtract(1, 'days'))
 		})
 	})
 }
 
 function sendMeasurements(results) {
 	if(results.length < 1) return sendMessage(`Sorry, I didn't find any data for your area...`)
-	results.map((location) => {
-		let text = location.measurements.map((mes) => {
-			return `*${mes.parameter}* ${Math.round(mes.value * 100) / 100} ${mes.unit}`
-		}).join(`
-`)
+	let measurements = results.map((location) => location.measurements).reduce((result, measurement) => {
+		measurement.filter((param) => new Date(param.lastUpdated) > moment().subtract(1, 'days')).map((param) => {
+			result[param.parameter] = result[param.parameter] || {}
+			result[param.parameter] = {
+				min: Math.min(result[param.parameter].min || Infinity, Math.round(param.value * 100) / 100),
+				max: Math.max(result[param.parameter].max || 0, Math.round(param.value * 100) / 100),
+			}
+		})
+		return result
+	}, {})
+	let text = ``
+	for(let param in measurements) {
 		text += `
-measured in ${location.location}, ${location.city}, ${location.country}`
-		sendMessage(text)
-	})
+*${param}* ${measurements[param].min} - ${measurements[param].max}`
+	}
+	sendMessage(text)
 }
 
 function sendAnswer(location) {

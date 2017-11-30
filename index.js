@@ -14,6 +14,15 @@ const bot = new TelegramBot(TOKEN, options)
 
 bot.setWebHook(`${url}/bot${TOKEN}`)
 
+const limits = {
+	pm25: {low: 10, high: 25},
+	pm10: {low: 20, high: 50},
+	o3: {low: 100, high: 300},
+	no2: {low: 40, high: 200},
+	so2: {low: 20, high: 400},
+	co: {low: 9999, high: 9999}
+}
+
 const commands = {
 	start(params) {
 		sendMessage(`Send me your location or the name of a place you want to know about.`)
@@ -54,10 +63,10 @@ function getMeasurements(location, radius = 25000) {
 
 function sendMeasurements(results) {
 	if(results.length < 1) return sendMessage(`Sorry, I didn't find any data for your area...`)
-	let measurements = results.sort((l1, l2) => l1.distance - l2.distance).map((location) => location.measurements).reduce((result, measurement) => {
-		measurement.filter((param) => new Date(param.lastUpdated) > moment().subtract(3, 'days')).map((param) => {
+	let measurements = results.sort((l1, l2) => l1.distance - l2.distance).reduce((result, location) => {
+		location.measurements.filter((param) => new Date(param.lastUpdated) > moment().subtract(3, 'days')).map((param) => {
 			if(result[param.parameter]) return
-			result[param.parameter] = param;
+			result[param.parameter] = { ...param, distance: Math.round(location.distance / 10) / 100 };
 			// result[param.parameter] = {
 			// 	min: Math.min(result[param.parameter].min || Infinity, Math.round(param.value * 100) / 100),
 			// 	max: Math.max(result[param.parameter].max || 0, Math.round(param.value * 100) / 100),
@@ -68,7 +77,7 @@ function sendMeasurements(results) {
 	let text = ``
 	for(let param in measurements) {
 		text += `
-*${param}* ${Math.round(measurements[param].value * 100) / 100} ${measurements[param].unit} _(${new Date(measurements[param].lastUpdated).toLocaleString()})_`
+*${param}* ${Math.round(measurements[param].value * 100) / 100} ${measurements[param].unit} _(${new Date(measurements[param].lastUpdated).toLocaleString()} in ${measurements[param].distance} km)_`
 	}
 	sendMessage(text)
 }
@@ -83,7 +92,7 @@ function sendAnswer(location) {
 }
 
 let message;
-bot.on('message', function onMessage(msg) {
+bot.on('text', function onMessage(msg) {
 	message = msg;
 	bot.sendChatAction(msg.chat.id, 'typing')
 	if(message.entities && (cmds = message.entities.filter((e) => e.type === 'bot_command')).length > 0) {

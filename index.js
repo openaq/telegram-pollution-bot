@@ -54,20 +54,21 @@ function getMeasurements(location, radius = 25000) {
 
 function sendMeasurements(results) {
 	if(results.length < 1) return sendMessage(`Sorry, I didn't find any data for your area...`)
-	let measurements = results.map((location) => location.measurements).reduce((result, measurement) => {
-		measurement.filter((param) => new Date(param.lastUpdated) > moment().subtract(1, 'days')).map((param) => {
-			result[param.parameter] = result[param.parameter] || {}
-			result[param.parameter] = {
-				min: Math.min(result[param.parameter].min || Infinity, Math.round(param.value * 100) / 100),
-				max: Math.max(result[param.parameter].max || 0, Math.round(param.value * 100) / 100),
-			}
+	let measurements = results.sort((l1, l2) => l1.distance - l2.distance).map((location) => location.measurements).reduce((result, measurement) => {
+		measurement.filter((param) => new Date(param.lastUpdated) > moment().subtract(3, 'days')).map((param) => {
+			if(result[param.parameter]) return
+			result[param.parameter] = param;
+			// result[param.parameter] = {
+			// 	min: Math.min(result[param.parameter].min || Infinity, Math.round(param.value * 100) / 100),
+			// 	max: Math.max(result[param.parameter].max || 0, Math.round(param.value * 100) / 100),
+			// }
 		})
 		return result
 	}, {})
 	let text = ``
 	for(let param in measurements) {
 		text += `
-*${param}* ${measurements[param].min} - ${measurements[param].max}`
+*${param}* ${Math.round(measurements[param].value * 100) / 100} ${measurements[param].unit} _(${new Date(measurements[param].lastUpdated).toLocaleString()})_`
 	}
 	sendMessage(text)
 }

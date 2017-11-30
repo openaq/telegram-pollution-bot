@@ -15,12 +15,12 @@ const bot = new TelegramBot(TOKEN, options)
 bot.setWebHook(`${url}/bot${TOKEN}`)
 
 const limits = {
-	pm25: {low: 10, high: 25},
-	pm10: {low: 20, high: 50},
-	o3: {low: 100, high: 300},
-	no2: {low: 40, high: 200},
-	so2: {low: 20, high: 400},
-	co: {low: 9999, high: 9999}
+	pm25: {low: 10, high: 25, unit: 'µg/m³'},
+	pm10: {low: 20, high: 50, unit: 'µg/m³'},
+	o3: {low: 100, high: 300, unit: 'µg/m³'},
+	no2: {low: 40, high: 200, unit: 'µg/m³'},
+	so2: {low: 20, high: 400, unit: 'µg/m³'},
+	co: {low: 9999, high: 9999, unit: 'µg/m³'}
 }
 
 const commands = {
@@ -29,7 +29,7 @@ const commands = {
 	},
 
 	help(params) {
-		sendMessage(`If you send me your current location, I'll see if I can find any data on air pollution in your area. You can also send me the name of a place or an address that you are interested in and I'll see if I can find any data for you.`)
+		sendMessage(`If you send me your current location, I'll see if I can find any data on air pollution in your area. You can also send me the name of a place or an address that you are interested in and I'll see if I can find any data for you. Data comes from https://openaq.org/, a great platform for open air quality data. Recommended levels taken from WHO guideline http://www.who.int/.`)
 	}
 }
 
@@ -77,7 +77,11 @@ function sendMeasurements(results) {
 	let text = ``
 	for(let param in measurements) {
 		text += `
-*${param}* ${Math.round(measurements[param].value * 100) / 100} ${measurements[param].unit} _(${new Date(measurements[param].lastUpdated).toLocaleString()} in ${measurements[param].distance} km)_`
+*${param}* ${Math.round(measurements[param].value * 100) / 100} ${measurements[param].unit} `
+		if(limits[param] && limits[param].unit === measurements[param].unit) {
+			text += measurements[param].value > limits[param].high ? '😫 ' : measurements[param].value > limits[param].low ? '😐 ' : '🙂 '
+		}
+		text += `_(${new Date(measurements[param].lastUpdated).toLocaleString()} in ${measurements[param].distance} km)_`
 	}
 	sendMessage(text)
 }
@@ -98,7 +102,7 @@ bot.on('text', function onMessage(msg) {
 	if(message.entities && (cmds = message.entities.filter((e) => e.type === 'bot_command')).length > 0) {
 		cmds.map((entity) => processCommand(entity))
 	} else {
-		superagent.get(`https://maps.googleapis.com/maps/api/geocode/json?&address=${message.text}`).then((res) => {
+		superagent.get(`https://maps.googleapis.com/maps/api/geocode/json?&address=${encodeURIComponent(message.text)}&key=${process.env.GOOGLE_GEOCODING_API_KEY}`).then((res) => {
 			if(res.body.results.length < 1) return sendMessage(`I didn't find that address. Could you rephrase?`)
 			let location = res.body.results.pop()
 			sendAnswer({latitude: location.geometry.location.lat, longitude: location.geometry.location.lng})

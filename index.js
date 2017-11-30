@@ -56,7 +56,7 @@ function sendMeasurements(results) {
 	if(results.length < 1) return sendMessage(`Sorry, I didn't find any data for your area...`)
 	results.map((location) => {
 		let text = location.measurements.map((mes) => {
-			return `*${mes.parameter}* ${Math.round(mes.value, -2)} ${mes.unit}`
+			return `*${mes.parameter}* ${Math.round(mes.value * 100) / 100} ${mes.unit}`
 		}).join(`
 `)
 		text += `
